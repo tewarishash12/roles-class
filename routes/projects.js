@@ -1,10 +1,11 @@
-const { PROJECTS, TASKS, USERS } = require('../db.js');
+const { PROJECTS, TASKS, findTasksByProject, findUser, findManager } = require('../db.js');
+const { populateProject } = require('../middleware/data.js');
 const router = require('express').Router();
 
 
 router.get('/', (req, res) => {
     const detailedProjects = PROJECTS.map(project => {
-        const taskCount = TASKS.filter(task => task.projectId === project.id).length;
+        const taskCount = findTasksByProject(project.id).length;
         return {
             ...project,
             taskCount,
@@ -13,29 +14,34 @@ router.get('/', (req, res) => {
     res.json(detailedProjects);
 });
 
-router.get('/:id', (req, res) => {
-    const project = PROJECTS.find(p => p.id === parseInt(req.params.id));
-    if (!project) {
+router.get('/:id', populateProject, (req, res) => {
+    if (!req.project) {
         return res.status(404).json({ error: 'Project not found' });
     }
-    const tasksForProject = TASKS.filter(task => task.projectId === project.id).map(task => {
-        const user = USERS.find(u => u.id === task.userId);
+    const tasksForProject = findTasksByProject(req.project.id).map(task => {
+        const user = findUser(task.userId);
         return {
             ...task,
             userName: user ? user.username : null,
         };
     });
     res.json({
-        ...project,
+        ...req.project,
         tasks: tasksForProject,
     });
 });
 
-router.post('/projects', (req, res) => {
+router.post('/', (req, res) => {
     const { name, managerId } = req.body;
-    if (!name || !managerId) {
+    if (!name) {
         return res.status(400).json({ error: 'Name and managerId are required' });
     }
+
+    const manager = findManager(managerId);
+    if (!manager) {
+        return res.status(400).json({ error: 'Manager not found with id: ' + managerId });
+    }
+
     const newProject = {
         id: PROJECTS.length + 1,
         name,
@@ -45,12 +51,15 @@ router.post('/projects', (req, res) => {
     res.status(201).json(newProject);
 });
 
-router.post('/:id/task', (req, res) => {
-    const { name, userId } = req.body;
-    const projectId = parseInt(req.params.id);
-    if (!name || !projectId || !userId) {
-        return res.status(400).json({ error: 'Name, projectId, and userId are required' });
+router.post('/:id/task', populateProject, (req, res) => {
+    if (!req.project) {
+        return res.status(404).json({ error: 'Project not found' });
     }
+    const { name, userId } = req.body;
+    if (!name || !userId) {
+        return res.status(400).json({ error: 'Name, and userId are required' });
+    }
+    const projectId = req.project.id;
     const newTask = {
         id: TASKS.length + 1,
         name,
@@ -61,12 +70,11 @@ router.post('/:id/task', (req, res) => {
     res.status(201).json(newTask);
 });
 
-router.delete('/:id', (req, res) => {
-    const project = PROJECTS.findIndex(p => p.id === parseInt(req.params.id));
-    if (project === null) {
+router.delete('/:id', populateProject, (req, res) => {
+    if (req.project === null) {
         return res.status(404).json({ error: 'Project not found' });
     }
-    console.log("Marked project completed", project.id);
+    console.log("Marked project completed", req.project.id);
     res.status(204).send();
 });
 

@@ -37,6 +37,46 @@ const TASKS = [
     { id: 12, name: 'task12', projectId: 4, userId: 4 },
 ];
 
+// methods
+
+function findTask(taskId) {
+    return TASKS.find(t => t.id === parseInt(taskId));
+}
+
+function fillTaskDetails(task) {
+    const project = PROJECTS.find(p => p.id === task.projectId);
+    const user = USERS.find(u => u.id === task.userId);
+    const manager = project ? USERS.find(u => u.id === project.managerId) : null;
+    return {
+        ...task,
+        projectName: project ? project.name : null,
+        managerName: manager ? manager.name : null,
+        userName: user ? user.username : null,
+    };
+}
+
+function findTasksByProject(projectId) {
+    return TASKS.filter(task => task.projectId === projectId);
+}
+
+function findUser(userId) {
+    return USERS.find(u => u.id === parseInt(userId));
+}
+
+function findManager(userId) {
+    return USERS.find(u => u.id === parseInt(userId) && u.role === ROLES.MANAGER);
+}
+
+function findProject(projectId) {
+    return PROJECTS.find(p => p.id === parseInt(projectId));
+}
+
 module.exports = {
     ROLES, USERS, PROJECTS, TASKS,
+    fillTaskDetails,
+    findTasksByProject,
+    findTask,
+    findUser,
+    findProject,
+    findManager,
 }

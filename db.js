@@ -63,6 +63,10 @@ function findUser(userId) {
     return USERS.find(u => u.id === parseInt(userId));
 }
 
+function findUserByName(username) {
+    return USERS.find(u => u.username === username);
+}
+
 function findManager(userId) {
     return USERS.find(u => u.id === parseInt(userId) && u.role === ROLES.MANAGER);
 }
@@ -96,4 +100,5 @@ module.exports = {
     findUser,
     findProject,
     findManager,
+    findUserByName,
 }

@@ -71,10 +71,27 @@ function findProject(projectId) {
     return PROJECTS.find(p => p.id === parseInt(projectId));
 }
 
+function fillProjectDetails(project) {
+    const tasksForProject = findTasksByProject(project.id).map(task => {
+        const user = findUser(task.userId);
+        return {
+            ...task,
+            userName: user ? user.username : null,
+        };
+    });
+    const manager = USERS.find(u => u.id === project.managerId);
+    return {
+        ...project,
+        managerName: manager ? manager.username : null,
+        tasks: tasksForProject,
+    };
+}
+
 module.exports = {
     ROLES, USERS, PROJECTS, TASKS,
     fillTaskDetails,
     findTasksByProject,
+    fillProjectDetails,
     findTask,
     findUser,
     findProject,

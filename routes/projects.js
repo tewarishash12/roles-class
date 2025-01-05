@@ -1,4 +1,4 @@
-const { PROJECTS, TASKS, findTasksByProject, findUser, findManager } = require('../db.js');
+const { PROJECTS, TASKS, findTasksByProject, findManager, fillProjectDetails } = require('../db.js');
 const { populateProject } = require('../middleware/data.js');
 const router = require('express').Router();
 
@@ -6,9 +6,11 @@ const router = require('express').Router();
 router.get('/', (req, res) => {
     const detailedProjects = PROJECTS.map(project => {
         const taskCount = findTasksByProject(project.id).length;
+        const manager = findManager(project.managerId);
         return {
             ...project,
             taskCount,
+            managerName: manager ? manager.username : null,
         };
     });
     res.json(detailedProjects);
@@ -18,17 +20,7 @@ router.get('/:id', populateProject, (req, res) => {
     if (!req.project) {
         return res.status(404).json({ error: 'Project not found' });
     }
-    const tasksForProject = findTasksByProject(req.project.id).map(task => {
-        const user = findUser(task.userId);
-        return {
-            ...task,
-            userName: user ? user.username : null,
-        };
-    });
-    res.json({
-        ...req.project,
-        tasks: tasksForProject,
-    });
+    res.json(fillProjectDetails(req.project));
 });
 
 router.post('/', (req, res) => {

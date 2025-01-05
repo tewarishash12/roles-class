@@ -2,16 +2,7 @@ const { PROJECTS, TASKS, USERS } = require('../db.js');
 const router = require('express').Router();
 
 router.get('/', (req, res) => {
-    const detailedTasks = TASKS.map(task => {
-        const project = PROJECTS.find(p => p.id === task.projectId);
-        const user = USERS.find(u => u.id === task.userId);
-        return {
-            ...task,
-            projectName: project ? project.name : null,
-            managerName: project ? USERS.find(u => u.id === project.managerId)?.username : null,
-            userName: user ? user.username : null,
-        };
-    });
+    const detailedTasks = TASKS.map(task => fillTaskDetails(task));
     res.json(detailedTasks);
 });
 
@@ -20,7 +11,7 @@ router.get('/:id', (req, res) => {
     if (!task) {
         return res.status(404).json({ error: 'Task not found' });
     }
-    res.json(task);
+    res.json(fillTaskDetails(task));
 });
 
 router.delete('/:id', (req, res) => {
@@ -31,5 +22,17 @@ router.delete('/:id', (req, res) => {
     console.log("Marked task completed", task.id);
     res.status(204).send();
 });
+
+function fillTaskDetails(task) {
+    const project = PROJECTS.find(p => p.id === task.projectId);
+    const user = USERS.find(u => u.id === task.userId);
+    const manager = project ? USERS.find(u => u.id === project.managerId) : null;
+    return {
+        ...task,
+        projectName: project ? project.name : null,
+        managerName: manager ? manager.name : null,
+        userName: user ? user.username : null,
+    };
+}
 
 module.exports = router;

@@ -28,7 +28,7 @@ router.post('/projects', (req, res) => {
     res.status(201).json(newProject);
 });
 
-router.post('/:id/tasks', (req, res) => {
+router.post('/:id/task', (req, res) => {
     const { name, userId } = req.body;
     const projectId = parseInt(req.params.id);
     if (!name || !projectId || !userId) {

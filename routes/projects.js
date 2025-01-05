@@ -3,7 +3,14 @@ const router = require('express').Router();
 
 
 router.get('/', (req, res) => {
-    res.json(PROJECTS);
+    const detailedProjects = PROJECTS.map(project => {
+        const taskCount = TASKS.filter(task => task.projectId === project.id).length;
+        return {
+            ...project,
+            taskCount,
+        };
+    });
+    res.json(detailedProjects);
 });
 
 router.get('/:id', (req, res) => {
@@ -11,7 +18,17 @@ router.get('/:id', (req, res) => {
     if (!project) {
         return res.status(404).json({ error: 'Project not found' });
     }
-    res.json(project);
+    const tasksForProject = TASKS.filter(task => task.projectId === project.id).map(task => {
+        const user = USERS.find(u => u.id === task.userId);
+        return {
+            ...task,
+            userName: user ? user.username : null,
+        };
+    });
+    res.json({
+        ...project,
+        tasks: tasksForProject,
+    });
 });
 
 router.post('/projects', (req, res) => {

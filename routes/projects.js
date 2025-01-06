@@ -17,9 +17,6 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', populateProject, (req, res) => {
-    if (!req.project) {
-        return res.status(404).json({ error: 'Project not found' });
-    }
     res.json(fillProjectDetails(req.project));
 });
 
@@ -44,9 +41,6 @@ router.post('/', (req, res) => {
 });
 
 router.post('/:id/task', populateProject, (req, res) => {
-    if (!req.project) {
-        return res.status(404).json({ error: 'Project not found' });
-    }
     const { name, userId } = req.body;
     if (!name || !userId) {
         return res.status(400).json({ error: 'Name, and userId are required' });
@@ -63,9 +57,6 @@ router.post('/:id/task', populateProject, (req, res) => {
 });
 
 router.delete('/:id', populateProject, (req, res) => {
-    if (req.project === null) {
-        return res.status(404).json({ error: 'Project not found' });
-    }
     console.log("Marked project completed", req.project.id);
     res.status(204).send();
 });

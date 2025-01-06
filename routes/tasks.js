@@ -8,16 +8,10 @@ router.get('/', (req, res) => {
 });
 
 router.get('/:id', populateTask, (req, res) => {
-    if (!req.task) {
-        return res.status(404).json({ error: 'Task not found' });
-    }
     res.json(fillTaskDetails(req.task));
 });
 
 router.delete('/:id', populateTask, (req, res) => {
-    if (req.task === null) {
-        return res.status(404).json({ error: 'Task not found' });
-    }
     console.log("Marked task completed", req.task.id);
     res.status(204).send();
 });
